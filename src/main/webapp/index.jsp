@@ -96,12 +96,12 @@
         <!-- 홈버튼 -->
         <div class="phone-home"></div>
     </div>
-        <div class="visitor-btn-wrap" onclick="location.href='/visitor'">
-            <div class="visitor-btn-card">
-                <span class="visitor-icon">🐾</span>
-                <span class="visitor-text">방문자 보기</span>
-            </div>
+    <div class="visitor-btn-wrap" onclick="location.href='visitor'">
+        <div class="visitor-btn-card">
+            <span class="visitor-icon">🐾</span>
+            <span class="visitor-text">방문자 보기</span>
         </div>
+    </div>
 
 </div>
 
