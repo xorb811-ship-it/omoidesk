@@ -14,15 +14,15 @@ public class VisitorC extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // 1. DB 연동 (지금은 주석 처리된 상태 유지)
-        // VisitorDAO dao = new VisitorDAO();
+//         VisitorDAO dao = new VisitorDAO();
         // List<VisitorDTO> list = dao.getAllVisitors();
         // request.setAttribute("visitorList", list);
 
         // 2. 화면 설정 (파일명 앞에 /를 붙여 경로를 확실히 합니다)
-        request.setAttribute("content", "/visitor.jsp");
+        request.setAttribute("content", "visitor/visitor.jsp");
 
         // 3. 포워딩 (main.jsp가 WEB-INF 밖에 있다면 아래처럼, 안에 있다면 경로 수정)
-        request.getRequestDispatcher("/main.jsp").forward(request, response);
+        request.getRequestDispatcher("index.jsp").forward(request, response);
     }
     // 새로운 방문 기록을 저장하는 역할 (생성: Create)
     @Override
