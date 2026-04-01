@@ -12,19 +12,21 @@ import java.util.ArrayList;
 public class GuestBoardDAO {
     public static final GuestBoardDAO GBDAO = new GuestBoardDAO();
 
-    public Connection con = null;
+//    public Connection con = null;
 
     private GuestBoardDAO() {
         try {
-            con = DBManager.connect();
+//            con = DBManager.connect();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
     public void showGuestBoard(HttpServletRequest request, HttpServletResponse response) {
+        Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
+            con = DBManager.connect();
             request.setCharacterEncoding("utf-8");
             String sql = "select guest_nick, board_content, is_private, created_at from guestboard_test";
 
@@ -54,8 +56,10 @@ public class GuestBoardDAO {
     }
 
     public void addHi(HttpServletRequest request, HttpServletResponse response) {
+        Connection con = null;
         PreparedStatement ps = null;
         try {
+            con = DBManager.connect();
         request.setCharacterEncoding("utf-8");
 
 
@@ -67,7 +71,7 @@ public class GuestBoardDAO {
         String board_content = request.getParameter("content");
         int is_private = 0;
 
-        String sql = "insert into guestboard_test values(?,?,?,?,?,?,?,DEFAULT)";
+        String sql = "insert into guestboard_test values(?,?,?,?,?,?,DEFAULT)";
 
             ps = con.prepareStatement(sql);
             ps.setString(1,pk);
