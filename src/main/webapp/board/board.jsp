@@ -26,7 +26,7 @@
             </div>
             <div class="post-text">
                 <c:forEach items="${guestBoard}" var="gb">
-                    ${gb.guest_nick}/${gb.board_content}/${gb.created_at}
+                    ${gb.guest_nick}/${gb.board_content}/${gb.created_at} <br>
                 </c:forEach>
 
             </div>
