@@ -66,19 +66,18 @@
     </div>
 </div>
 
-<div class="right-col">
-    <div class="mp3">
-        <div class="mp3-screen">
-            <div class="mp3-marquee">
-                <span class="mp3-title-inner" onclick="location.href='/bgm'"
-                >♪ Hype Boy - NewJeans &nbsp;&nbsp;&nbsp;&nbsp; ♪ Attention -
-                  NewJeans</span
-                >
-            </div>
-            <div class="mp3-controls-row">
-                <div class="mp3-time">01:23</div>
-                <div class="mp3-bar-mini">
-                    <div class="mp3-fill-mini"></div>
+            <div class="nb-tabs">
+                <div class="nb-tab ${content eq 'main.jsp' or empty content ? 'active' : ''}"
+                     data-src="/home-body?ajax=true">홈
+                </div>
+                <div class="nb-tab ${content eq 'diary/diary.jsp' ? 'active' : ''}"
+                     data-src="/diary?ajax=true">다이어리
+                </div>
+                <div class="nb-tab ${content eq 'photo/photo.jsp' ? 'active' : ''}"
+                     data-src="/photo?ajax=true">사진첩
+                </div>
+                <div class="nb-tab ${content eq 'visitor/visitor.jsp' ? 'active' : ''}"
+                     data-src="/visitor?ajax=true">방명록
                 </div>
                 <div class="mp3-time">03:07</div>
             </div>
@@ -92,7 +91,7 @@
             <div class="mp3">
                 <div class="mp3-screen">
                     <div class="mp3-marquee">
-                        <span class="mp3-title-inner">
+                        <span id="bgm-title" class="mp3-title-inner">
                             ♪ Hype Boy - NewJeans &nbsp;&nbsp;&nbsp;&nbsp;
                             ♪ Attention - NewJeans
                         </span>
@@ -155,6 +154,16 @@
 </div>
 <div class="desk-front"></div>
 </div>
+
+<div id="yt-player-hidden" style="display:none;"></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="/js/music/player.js"></script>
+<script src="/js/music/router.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        loadPlaylist(1); // 나중에 → loadPlaylist(${loginUser.id}) 로 교체
+    });
+</script>
 </body>
 
 
