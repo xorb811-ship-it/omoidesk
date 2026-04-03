@@ -178,7 +178,6 @@ pageEncoding="UTF-8" %>
                 <div class="visitor-btn-card">
                     <span class="visitor-icon">🐾</span>
                     <span class="visitor-text">방문자 보기</span>
->>>>>>> fa6831ea9d76da1f30419e6caa66d09a473ffa29
                 </div>
                 <div
                   class="menu-item ${content eq 'diary/diary.jsp' ? 'active' : ''}"
