@@ -1,76 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Gaegu&family=Nanum+Pen+Script&display=swap');
 
+.diary-container {
+    display: flex;
+    flex-direction: column;
+    padding-left: 60px; /* 왼쪽 선 여백 */
+    padding-right: 30px;
+    padding-bottom: 50px;
+    height: 100%;
+    overflow-y: auto;
+    gap: 20px;
+    box-sizing: border-box;
+    background-color: transparent;
+}
+
+/* 상단 년/월 헤더 */
 .calendar-header {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 30px;
-    margin-bottom: 20px;
+    gap: 40px;
+    margin: 20px 0 10px 0;
 }
 
 .cal-title {
     font-family: "Nanum Pen Script", cursive;
-    font-size: 36px;
-    color: #8a7a78;
+    font-size: 42px;
+    color: #7a6b69;
     font-weight: bold;
-    min-width: 120px;
-    text-align: center;
 }
 
 .cal-btn {
     text-decoration: none;
     color: #f7cfcd;
-    font-size: 24px;
-    font-weight: bold;
-    transition: 0.2s;
-    cursor: pointer;
+    font-size: 30px;
 }
 
-.cal-btn:hover {
-    color: #f2a0a0;
-    transform: scale(1.3);
+/* ★ 달력을 감싸는 흰색 카드 스타일 추가 */
+.calendar-wrap {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* 부드러운 그림자 */
 }
 
-/* 기존 diary-container 패딩 수정 (왼쪽 선 가림 방지) */
-.diary-container {
-    display: flex;
-    flex-direction: column;
-    padding-left: 60px;
-    padding-right: 20px;
-    gap: 10px;
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-/* diary_cc.css 하단에 추가 또는 수정 */
+.calendar-table th {
+    padding: 15px 0;
+    color: #9a8a7a;
+    font-size: 14px;
+    font-weight: normal;
+}
 
-.diary-container {
-    display: flex;
-    flex-direction: column;
-    padding-left: 60px;
-    padding-right: 20px;
-    gap: 10px;
-    /* 짤림 방지: 컨텐츠가 길어지면 자동으로 스크롤 생성 */
+.calendar-table td {
+    height: 65px; /* 높이를 조금 더 키움 */
+    text-align: center;
+    border-top: 1px solid #fdf0ef; /* 아주 연한 가로선 */
+}
+
+.calendar-table td a {
+    text-decoration: none;
+    color: #5a4a3a;
+    display: block;
+    width: 100%;
     height: 100%;
-    overflow-y: auto;
-    padding-bottom: 50px; /* 맨 아래쪽 여백 확보 */
+    line-height: 65px;
+    font-family: 'Gaegu', cursive;
+    font-size: 20px;
 }
 
-/* 년도 클릭 시 강조 느낌 */
-.cal-title {
-    cursor: pointer;
-    border-bottom: 2px dashed #f7cfcd;
-}
-.cal-title:hover {
-    color: #f2a0a0;
+/* 일요일/토요일 색상 */
+.sun a { color: #ff8b8b !important; }
+.sat a { color: #8bb9ff !important; }
+
+/* 하단 일기 게시판 카드 스타일 */
+.diary-board {
+    margin-top: 10px;
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px dashed #f7cfcd;
 }
 
-/* 년도 선택 레이어 (간단한 방식) */
-.date-selector {
-    display: none; /* 기본은 숨김 */
+.board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.board-header h3 {
+    font-family: "Nanum Pen Script", cursive;
+    font-size: 32px;
+    color: #7a6b69;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.post-item {
     background: #fff;
-    border: 1px solid #f7cfcd;
-    border-radius: 10px;
-    padding: 10px;
-    position: absolute;
-    top: 50px;
-    z-index: 100;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border: 1px solid #fdf0ef;
+    border-radius: 12px;
+    padding: 20px;
 }
+
+.write-btn {
+    padding: 8px 25px;
+    background: #f7cfcd;
+    border: none;
+    border-radius: 25px;
+    color: white;
+    font-family: "Gaegu", cursive;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.write-btn:hover { opacity: 1; }
