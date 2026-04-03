@@ -71,3 +71,17 @@ function loadPage(url) {
         })
         .catch(error => console.error("페이지 로드 실패:", error));
 }
+
+// index.jsp 하단 script 부분 혹은 index.js
+document.querySelectorAll('.menu-item, .nb-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const target = this.getAttribute('data-src');
+
+        if (target.includes('diary')) {
+            loadDiary(); // 다이어리 비동기 로드 함수 호출
+        } else if (target.includes('board')) {
+            loadGuestBoard(); // 팀원분이 만든 방명록 함수 호출
+        }
+        // ... 다른 메뉴 처리
+    });
+});

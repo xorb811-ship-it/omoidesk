@@ -157,7 +157,7 @@
 <script src="/js/music/router.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        loadPlaylist(1); // 나중에 → loadPlaylist(${loginUser.id}) 로 교체
+        <%--loadPlaylist(1); // 나중에 → loadPlaylist(${loginUser.id}) 로 교체--%>
     });
 </script>
 </body>

@@ -1,33 +1,37 @@
-/* 1. 일기 쓰기 폼 토글 (열기/닫기) */
-function showWriteForm() {
-    const form = document.getElementById('writeForm');
-    if (!form) return; // 폼이 없으면 실행 안 함 (에러 방지)
+// 다이어리 페이지 로드 함수
+function loadDiary(url = '/diary') {
+    fetch(url)
+        .then(response => response.text()) // HTML 조각을 받아옴
+        .then(html => {
+            const contentArea = document.getElementById('notebook-content');
+            contentArea.innerHTML = html;
 
-    if (form.style.display === 'none' || form.style.display === '') {
-        form.style.display = 'block';
-    } else {
-        form.style.display = 'none';
-    }
+            // 로드 후 이벤트 리스너 재연결 (필요 시)
+            // 예: 날짜 클릭 시 비동기로 다시 로드하게 만들기
+            rebindDiaryEvents();
+        })
+        .catch(error => console.error("다이어리 로드 실패:", error));
 }
 
-/* 2. 년도/월 클릭 시 날짜 선택창 토글 */
-function toggleDateSelector() {
-    const s = document.getElementById('dateSelector');
-    if (!s) return;
+// 달력 날짜나 화살표 클릭 시 페이지 이동 없이 비동기로 처리하기 위한 함수
+function rebindDiaryEvents() {
+    const contentArea = document.getElementById('notebook-content');
 
-    if (s.style.display === 'none' || s.style.display === '') {
-        s.style.display = 'block';
-    } else {
-        s.style.display = 'none';
-    }
+    // 모든 링크(화살표, 날짜)를 가로채서 fetch로 처리
+    contentArea.querySelectorAll('a').forEach(anchor => {
+        anchor.onclick = function(e) {
+            const href = this.getAttribute('href');
+            // 외부 링크가 아니고 내부 diary 관련 링크라면 비동기 처리
+            if (href && href.startsWith('diary')) {
+                e.preventDefault();
+                loadDiary(href);
+            }
+        };
+    });
 }
 
-/* 3. 외부 클릭 시 열려있는 창 닫기 */
-window.onclick = function(event) {
-    const selector = document.getElementById('dateSelector');
-
-    // 클릭한 대상이 '년도 제목'도 아니고 '선택창 내부'도 아니면 닫기
-    if (selector && !event.target.matches('.cal-title') && !event.target.closest('.date-selector')) {
-        selector.style.display = 'none';
-    }
+// 글쓰기 폼 토글 (기존 로직 유지하되 contentArea 내에서 찾도록 수정)
+function toggleDiaryWrite() {
+    const form = document.querySelector('.write-full-container');
+    // 비동기 방식에서는 단순 토글보다 서버에서 mode=write HTML을 받아오는게 깔끔함
 }
