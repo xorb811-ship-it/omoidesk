@@ -2,16 +2,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>JSP - Hello World</title>
-  <link rel="stylesheet" href="css/index.css">
-  <link rel="stylesheet" href="css/visitor.css">
-  <link rel="stylesheet" href="css/guestboard.css">
-  <link rel="stylesheet" href="css/diary.css">
-  <%-- JS는 defer로 통일, 중복 제거 --%>
-  <script defer src="/js/minihome.js"></script>
-  <script defer src="/js/ajax.js"></script>
-  <script defer src="js/guestboard.js"></script>
-  <script defer src="js/diary.js"></script>
+    <%-- 라이브러리 --%>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/ko.js"></script>
+
+    <%-- CSS --%>
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/visitor.css">
+    <link rel="stylesheet" href="css/guestboard.css">
+    <link rel="stylesheet" href="css/diary.css">
+
+    <%-- JS --%>
+    <script src="js/guestboard.js"></script>
+    <script src="js/diary.js"></script>
+    <script src="js/index.js"></script>
+    <script src="js/visitor.js"></script>
+    <script defer src="/js/minihome.js"></script>
+    <script defer src="/js/ajax.js"></script>
+
+    <title>Team Kira - Minihompy</title>
 </head>
 <body>
 <div class="desk-wrapper">
@@ -62,7 +72,7 @@
     <div class="notebook ${content eq 'board/board.jsp' ? 'is-visitor' : ''}"
          id="notebook">
       <div class="notebook-header">
-        <h2>📖 DongMin의 소소한 일상</h2>
+          <h2>📖 Team Kira의 소소한 일상</h2>
         <div class="visitor">Today 15 | Total 1,234</div>
       </div>
 
@@ -82,7 +92,8 @@
       </div>
 
       <%-- ✅ iframe → AJAX 컨테이너로 교체 --%>
-      <div id="notebook-content" class="notebook-content">
+      <div id="notebook-content" class="notebook-content"
+           style="flex:1; width:100%; overflow-y:auto; padding:10px;">
         <%-- 로딩 스피너 (초기 렌더링 전 표시) --%>
         <div class="nb-loading" id="nb-loading">
           <div class="nb-spinner"></div>
@@ -132,14 +143,16 @@
              style="cursor: pointer"></div>
       </div>
 
-      <div class="visitor-btn-wrap"
-           onclick="switchTab('/visitor?ajax=true')">
-        <div class="visitor-btn-card">
-          <span class="visitor-icon">🐾</span>
-          <span class="visitor-text">방문자 보기</span>
+            <%-- 방문자 보기도 iframe 방식으로 --%>
+            <div class="visitor-btn-wrap"
+                 onclick="loadPage('visitor/visitor.jsp')">
+<%--                onclick="switchTab('/visitor?ajax=true')">--%>
+                <div class="visitor-btn-card">
+                    <span class="visitor-icon">🐾</span>
+                    <span class="visitor-text">방문자 보기</span>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
     <div class="postit">
       오늘도<br/>몽글몽글한<br/>하루 보내장🌤<br/>
@@ -160,6 +173,5 @@
     loadPlaylist('dongmin'); // 이미 player.js에 있는 더미 데이터 사용
   });
 </script>
-
 </body>
 </html>
