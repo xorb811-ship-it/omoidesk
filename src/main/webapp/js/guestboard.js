@@ -105,3 +105,7 @@ document.addEventListener("submit", function (e) {
 // body : 실제 택배 내용물입니다. new URLSearchParams()를 쓰면 자바스크립트가 알아서 데이터를 content=안녕 같은 형태로 예쁘게 포장해 줍니다.
 //
 // .then() : 서버에서 작업이 다 끝나고 대답(response)이 돌아왔을 때 실행할 행동입니다. 여기서 새로고침 대신 loadGuestBoard()를 호출해서 새 글이 뿅! 하고 나타나게 만드는 것이 비동기의 묘미입니다.
+
+function editMode(pk,content,date){
+
+}
