@@ -17,10 +17,10 @@ function loadGuestBoard(date = "") {
                 const htmlTemplate = `
                       <div class="gb-content-row">
                        <span class="gb-text-part">
-                            ${gb.guest_nick} : <span id="guestHi_${gb.gboard_pk}"> ${gb.board_content}</span>
+                       <a href="javascript:void(0);" onclick="guestHome('${gb.guest_pk}')" class="gb-user-link" >${gb.guest_nick}</a> : <span id="guestHi_${gb.gboard_pk}"> ${gb.board_content}</span>
                        </span>
-                             <a href="javascript:void(0);" onclick="editMode('${gb.gboard_pk}', '${gb.board_content}','${showGB.selectedDate}')" class="gbUp">📝</a>
-                             <a href="javascript:void(0);" onclick="location.href='delGB?gboard_pk=${gb.gboard_pk}'" class="gbDel">🗑️</a>
+                             <a href="javascript:void(0);" onclick="gbEditMode('${gb.gboard_pk}', '${gb.board_content}','${showGB.selectedDate}')" class="gbUp">📝</a>
+                             <a href="javascript:void(0);" onclick="gbDelete('${gb.gboard_pk}','${showGB.selectedDate}')" class="gbDel">🗑️</a>
                       </div>
                       <div class="gb-created-at">
                             ${gb.created_at}
@@ -106,6 +106,87 @@ document.addEventListener("submit", function (e) {
 //
 // .then() : 서버에서 작업이 다 끝나고 대답(response)이 돌아왔을 때 실행할 행동입니다. 여기서 새로고침 대신 loadGuestBoard()를 호출해서 새 글이 뿅! 하고 나타나게 만드는 것이 비동기의 묘미입니다.
 
-function editMode(pk,content,date){
+function gbEditMode(pk,content,date){
+        const updateGB = document.getElementById(`guestHi_${pk}`);
 
+        updateGB.innerHTML = `
+        <input type="text" id="gb_edit_${pk}" value="${content}" class="gb_edit">
+        <a href="javascript:void(0);" onclick="updateGuestBoard('${pk}','${date}')" style="font-size:12px; margin-left:5px; color:#a29bfe;">[확인]</a>
+        <a href="javascript:void(0);" onclick="loadGuestBoard('${date}')" style="font-size:12px; margin-left:5px; color:#ff7675;">[취소]</a>
+        `;
+
+        document.getElementById(`gb_edit_${pk}`).focus();
+}
+function updateGuestBoard(pk,date){
+    const newGB = document.getElementById(`gb_edit_${pk}`).value;
+
+    if(newGB.trim() ===""){
+        alert("수정할 내용을 입력해주세요!");
+        return;
+    }
+
+    fetch('/updateGB',{
+        method: 'POST',
+        headers: {
+            'Content-Type':'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            pk:pk,
+            content: newGB
+        })
+    })
+        .then(response => response.json())
+        .then(upGB => {
+            if(upGB.result == "success"){
+                loadGuestBoard(date);
+            }else{
+                alert("방명록 수정에 실패했습니다.");
+            }
+        })
+        .catch(error => console.error("수정 통신 에러:", error));
+}
+function gbDelete(pk, date){
+    fetch('/delGB',{
+        method: 'POST',
+        headers: {
+            'Content-Type':'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            pk:pk
+
+        })
+    })
+        .then(response => response.json())
+        .then(delGB => {
+            if(delGB.result == "success"){
+                loadGuestBoard(date);
+            }else{
+                alert("방명록 삭제에 실패했습니다.");
+            }
+        })
+        .catch(error => console.error("수정 통신 에러:", error));
+
+
+
+
+}
+function guestHome(pk){
+    fetch('/guestHome',{
+        method: 'POST',
+        headers: {
+            'Content-Type':'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            pk: pk
+        })
+        })
+        .then(response => response.json())
+        .then(guestH => {
+            if(guestH.result == "success"){
+                loadGuestHome(pk);
+            }else{
+                alert("접속 실패!");
+            }
+        })
+        .catch(error => console.error("수정 통신 에러:", error));
 }

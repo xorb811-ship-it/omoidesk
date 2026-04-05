@@ -116,17 +116,17 @@ public class GuestBoardDAO {
         return addHiResult;
     }
 
-    public void UpdateGuestBoard(HttpServletRequest request, HttpServletResponse response) {
+    public String UpdateGuestBoard(HttpServletRequest request, HttpServletResponse response) {
         Connection con = null;
         PreparedStatement ps = null;
-
+        String updateHiResult = "{\"result\": \"fail\"}";
         try {
             con = DBManager.connect();
             request.setCharacterEncoding("utf-8");
 
 
-            String board_content = request.getParameter("guest_board");
-            String gboard_pk = request.getParameter("gboard_pk");
+            String board_content = request.getParameter("content");
+            String gboard_pk = request.getParameter("pk");
 
             String sql = "update guestboard_test set board_content = ? where gboard_pk = ? ";
 
@@ -135,6 +135,7 @@ public class GuestBoardDAO {
             ps.setString(2, gboard_pk);
             if (ps.executeUpdate() == 1) {
                 System.out.println("update Gboard success");
+                updateHiResult = "{\"result\": \"success\"}";
             }
 
         } catch (Exception e) {
@@ -142,19 +143,21 @@ public class GuestBoardDAO {
         } finally {
             DBManager.close(con, ps, null);
         }
+        return updateHiResult;
     }
 
-    public void delGB(HttpServletRequest request, HttpServletResponse response) {
+    public String delGB(HttpServletRequest request, HttpServletResponse response) {
 
         Connection con = null;
         PreparedStatement ps = null;
+        String delHiResult = "{\"result\": \"fail\"}";
 
         try {
             con = DBManager.connect();
             request.setCharacterEncoding("utf-8");
 
 
-            String gboard_pk = request.getParameter("gboard_pk");
+            String gboard_pk = request.getParameter("pk");
 
             String sql = "delete guestboard_test where gboard_pk = ? ";
 
@@ -163,6 +166,7 @@ public class GuestBoardDAO {
             ps.setString(1, gboard_pk);
             if (ps.executeUpdate() == 1) {
                 System.out.println("delete Gboard success");
+                delHiResult = "{\"result\": \"success\"}";
             }
 
         } catch (Exception e) {
@@ -170,5 +174,6 @@ public class GuestBoardDAO {
         } finally {
             DBManager.close(con, ps, null);
         }
+        return delHiResult;
     }
 }
