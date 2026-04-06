@@ -34,12 +34,18 @@ function renderQueue() {
         const item = document.createElement('div');
         item.className = 'bgm-track-item' + (i === window.currentIndex ? ' active' : '');
         item.innerHTML = `
-            <img class="bgm-track-thumb"
-                 src="https://img.youtube.com/vi/${track.youtubeId}/mqdefault.jpg"
-                 alt="${track.title}">
-            <span class="bgm-track-title">${track.title}</span>
-            <span class="bgm-track-duration">${formatTime(track.duration)}</span>
-        `;
+    <div class="bgm-track-num">${i + 1}</div>
+    <div class="bgm-playing-icon">
+        <span></span><span></span><span></span>
+    </div>
+    <div class="bgm-track-thumb">
+    <img src="https://img.youtube.com/vi/${track.youtubeId}/mqdefault.jpg" alt="${track.title}">
+</div>
+    <div class="bgm-track-info">
+        <div class="bgm-track-title">${track.title}</div>
+        <div class="bgm-track-duration">${formatTime(track.duration)}</div>
+    </div>
+`;
         item.addEventListener('click', () => {
             if (typeof window.playTrack === 'function') window.playTrack(i);
         });
