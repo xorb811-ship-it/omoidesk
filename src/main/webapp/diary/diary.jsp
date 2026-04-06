@@ -1,41 +1,39 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%-- 이 파일은 index.jsp의 #notebook-content 안에 삽입될 HTML 조각입니다. --%>
 <div class="diary-container">
     <c:choose>
-        <%-- [A] 글쓰기 모드 --%>
+        <%-- [1] 글쓰기 버튼을 눌렀을 때 나오는 화면 --%>
         <c:when test="${showMode == 'write'}">
-            <div class="write-full-container">
+            <div class="diary-board">
                 <div class="board-header">
                     <h3>✍️ ${curYear}.${curMonth}.${selectedDay} 일기 쓰기</h3>
-                        <%-- 취소 버튼도 비동기 로드로 변경 --%>
+                        <%-- 취소를 누르면 뒤로 튕기는 게 아니라 다시 비동기로 달력 화면을 부릅니다 --%>
                     <button onclick="loadDiary('diary?y=${curYear}&m=${curMonth}&d=${selectedDay}')" class="write-btn">취소</button>
                 </div>
 
-                    <%-- 폼 전송도 비동기로 할 수 있지만, 우선은 action 그대로 유지 --%>
-                <form action="diary.write" method="post" class="write-form-full">
+                <form action="diary.write" method="post" style="display: flex; flex-direction: column; gap: 15px;">
                     <input type="hidden" name="d_year" value="${curYear}">
                     <input type="hidden" name="d_month" value="${curMonth}">
                     <input type="hidden" name="d_date" value="${selectedDay}">
 
-                    <input name="d_title" placeholder="제목을 입력하세요" class="write-input-title" required>
-                    <textarea id="editor" name="d_txt" class="write-input-content" placeholder="내용을 입력하세요..." required></textarea>
+                    <input name="d_title" placeholder="제목을 입력하세요" style="width:100%; padding:15px; border:none; border-bottom:2px solid #f7cfcd; font-family:'Gaegu'; font-size:22px; outline:none; box-sizing: border-box;">
 
-                    <div class="write-footer">
-                        <button type="submit" class="write-btn">등록하기</button>
-                    </div>
+                        <%-- 💡 나중에 이 부분을 지우고 네이버 스마트 에디터를 넣으시면 됩니다! --%>
+                    <textarea name="d_txt" placeholder="내용을 입력하세요..." style="width:100%; height:250px; border:none; padding:15px; font-family:'Gaegu'; font-size:20px; outline:none; resize:none; box-sizing: border-box;"></textarea>
+
+                    <div style="text-align:right;"><button class="write-btn">등록하기</button></div>
                 </form>
             </div>
         </c:when>
 
-        <%-- [B] 달력 및 목록 --%>
+        <%-- [2] 기본 달력 화면 --%>
         <c:otherwise>
             <div class="calendar-header">
-                    <%-- href를 유지하되 js에서 가로챔 --%>
-                <a href="diary?y=${prevYear}&m=${prevMonth}" class="cal-btn">◀</a>
+                    <%-- 화살표도 비동기 로드(loadDiary)로 이동하게 수정 --%>
+                <a href="javascript:void(0);" onclick="loadDiary('diary?y=${prevYear}&m=${prevMonth}')" class="cal-btn">◀</a>
                 <span class="cal-title">${curYear}. ${curMonth < 10 ? '0' : ''}${curMonth}</span>
-                <a href="diary?y=${nextYear}&m=${nextMonth}" class="cal-btn">▶</a>
+                <a href="javascript:void(0);" onclick="loadDiary('diary?y=${nextYear}&m=${nextMonth}')" class="cal-btn">▶</a>
             </div>
 
             <div class="calendar-wrap">
@@ -48,33 +46,40 @@
                         <c:if test="${startDay > 1}">
                             <c:forEach var="i" begin="1" end="${startDay - 1}"><td></td></c:forEach>
                         </c:if>
+
                         <c:forEach var="d" begin="1" end="${lastDay}">
                         <td class="${(d + startDay - 1) % 7 == 1 ? 'sun' : ((d + startDay - 1) % 7 == 0 ? 'sat' : '')}">
-                            <a href="diary?y=${curYear}&m=${curMonth}&d=${d}">${d}</a>
+                                <%-- ★ 핵심: 날짜를 누르면 일반 이동이 아니라 비동기(fetch) 함수 실행! --%>
+                            <a href="javascript:void(0);" onclick="loadDiary('diary?y=${curYear}&m=${curMonth}&d=${d}')">${d}</a>
                         </td>
-                        <c:if test="${(d + startDay - 1) % 7 == 0 && d < lastDay}"></tr><tr></c:if>
+                        <c:if test="${(d + startDay - 1) % 7 == 0 && d < lastDay}">
+                    </tr><tr>
+                        </c:if>
                         </c:forEach>
                     </tr>
                     </tbody>
                 </table>
             </div>
 
+            <%-- [3] 특정 날짜를 눌렀을 때만 나타나는 일기 목록 & 글쓰기 버튼 --%>
             <c:if test="${showMode == 'list'}">
-                <hr class="diary-hr">
                 <div class="diary-board">
                     <div class="board-header">
                         <h3>📅 ${selectedDay}일의 일기</h3>
-                            <%-- 일기쓰기 버튼도 비동기로 요청 --%>
+                            <%-- 글쓰기 버튼 누르면 글쓰기 모드로 비동기 전환 --%>
                         <button onclick="loadDiary('diary?y=${curYear}&m=${curMonth}&d=${selectedDay}&mode=write')" class="write-btn">일기쓰기</button>
                     </div>
+
                     <div class="posts">
                         <c:forEach var="p" items="${posts}">
                             <div class="post-item">
-                                <div class="post-header">
-                                    <span class="post-user">${p}</span>
-                                    <span class="post-date">${curYear}.${curMonth}.${selectedDay}</span>
+                                <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #eee; padding-bottom:10px; margin-bottom:10px;">
+                                    <span style="font-weight:bold; font-size:22px; color:#555;">${p}</span>
+                                    <span style="font-size:14px; color:#bbb;">${curYear}.${curMonth}.${selectedDay}</span>
                                 </div>
-                                <div class="post-text">여기에 일기 본문이 들어갑니다.</div>
+                                <div style="font-size:18px; color:#666; line-height:1.6;">
+                                    오늘의 일기 본문 내용입니다.
+                                </div>
                             </div>
                         </c:forEach>
                     </div>
