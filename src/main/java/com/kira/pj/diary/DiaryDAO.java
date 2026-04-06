@@ -1,13 +1,28 @@
 package com.kira.pj.diary;
 
+import com.kira.pj.main.DBManager;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import javax.servlet.http.HttpServletRequest;
 
-public class DiaryM {
+public class DiaryDAO {
 
 
-    public static void getCalendar(HttpServletRequest req) {
+    public static final DiaryDAO DDAO = new DiaryDAO();
+    public Connection con = null;
+    private DiaryDAO() {
+        try {
+            con = DBManager.connect();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void getCalendar(HttpServletRequest req) {
 
         // 1. 현재 날짜 구하기
         Calendar cal = Calendar.getInstance();
@@ -62,6 +77,57 @@ public class DiaryM {
 
         }
     }
-}
+
+        // 일기 등록 기능 (Create)
+        public static void insertDiary(HttpServletRequest req) {
+            Connection con = null;
+            PreparedStatement pstmt = null;
+            String sql = "insert into diary_test values (diary_seq.nextval, ?, ?, ?, ?, SYSDATE)";
+
+            try {
+                con = DBManager.connection();
+                pstmt = con.prepareStatement(sql);
+                req.setCharacterEncoding("UTF-8");
+
+                String no = req.getParameter("d_no");
+                String id = req.getParameter("d_id");
+                String date = req.getParameter("d_date");
+                String title = req.getParameter("d_title");
+                String txt = req.getParameter("d_txt");
+                String createdAt = req.getParameter("d_created_at");
+
+                // 3. 날짜 예쁘게 합치기 (예: 2026-4-6 -> 2026-04-06)
+                // 월과 일이 한 자리수일 때 앞에 0을 붙여주면 나중에 DB에서 정렬하기 편해요!
+                String formattedMonth = String.format("%02d", Integer.parseInt(id));
+                String formattedDay = String.format("%02d", Integer.parseInt(date));
+                String fullDate = no + "-" + formattedMonth + "-" + formattedDay;
+
+
+                // 5. 빈칸(?)에 데이터 쏙쏙 채워 넣기
+                pstmt.setString(1, "DongMin"); // 나중에 로그인한 사람 아이디로 바꾸면 됩니다!
+                pstmt.setString(2, fullDate);
+                pstmt.setString(3, title);
+                pstmt.setString(4, txt);
+
+                // 6. DB에 실행 명령 내리기!
+                if (pstmt.executeUpdate() == 1) {
+                    System.out.println("일기 등록 성공! ദ്ദി(⩌ᴗ⩌ )");
+                }
+
+            } catch (Exception e) {
+                System.out.println("일기 등록 실패 ㅠㅠ");
+                e.printStackTrace();
+            } finally {
+                DBManager.close(con, pstmt, null);
+            }
+        }
+    }
+
+
+
+
+
+
+
 
 
