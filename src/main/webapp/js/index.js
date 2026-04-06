@@ -72,7 +72,7 @@ function loadPage(url) {
         .catch(error => console.error("페이지 로드 실패:", error));
 }
 
-<<<<<<< HEAD
+<<<<<<< HE
 // index.jsp 하단 script 부분 혹은 index.js
 document.querySelectorAll('.menu-item, .nb-tab').forEach(tab => {
     tab.addEventListener('click', function() {
@@ -81,10 +81,9 @@ document.querySelectorAll('.menu-item, .nb-tab').forEach(tab => {
         if (target.includes('diary')) {
             loadDiary(); // 다이어리 비동기 로드 함수 호출
         } else if (target.includes('board')) {
-            loadGuestBoard(); // 팀원분이 만든 방명록 함수 호출
+            loadGuestBoard(); // f팀원분이 만든 방명록 함수 호출
         }
         // ... 다른 메뉴 처리
-=======
 //=============================================================================================
 // 검색창 js 인데 수정할거 !!
 //=============================================================================================
@@ -137,6 +136,5 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
             searchDropdown.classList.add('hidden');
         }
->>>>>>> 51db69d233ca2b380526b65131a1ffda403afe94
     });
 });
