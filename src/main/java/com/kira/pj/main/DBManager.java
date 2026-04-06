@@ -7,6 +7,7 @@ import java.sql.*;
 public class DBManager {
     private static BasicDataSource dataSource;
     static {
+        System.out.println("db 연결 시도 ---------------------");
         dataSource = new BasicDataSource();
         dataSource.setUrl("jdbc:oracle:thin:@10.1.82.127:1521:XE");
         dataSource.setUsername("c##kira");
@@ -21,14 +22,14 @@ public class DBManager {
         System.out.println("you?");
         return dataSource.getConnection();
     }
-//    public static Connection connect() throws SQLException, ClassNotFoundException {
-//        System.out.println("db connected..!");
-//        String url = "jdbc:oracle:thin:@10.1.82.127:1521:XE";
-//        Class.forName("oracle.jdbc.OracleDriver");
-//        Connection con = DriverManager.getConnection(url,"c##tg1004", "tg1004");
-//        System.out.println("db connected..!22");
-//        return con;
-//    }
+
+
+    public static Connection connection() throws SQLException {
+         Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@10.1.82.127:1521:XE", "c##kira", "kira1004");
+        System.out.println("connect??????????");
+         return conn;
+    }
+
     public static void close(Connection con, PreparedStatement ps, ResultSet rs) {
         try {
             if (rs != null) {
