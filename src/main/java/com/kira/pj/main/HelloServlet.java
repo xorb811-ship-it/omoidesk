@@ -1,7 +1,5 @@
 package com.kira.pj.main;
 
-import com.kira.pj.diary.DiaryM;
-
 import java.io.*;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
