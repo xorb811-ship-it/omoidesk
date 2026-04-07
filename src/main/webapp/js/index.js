@@ -1,11 +1,16 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    // ==========================================
-    // 1. 페이지 라우팅 (메뉴/탭 클릭) 로직
-    // ==========================================
+    // ⭐ 브라우저야, 너 아까 누구 홈피 보고 있었는지 메모한 거 있어?
+    const savedId = sessionStorage.getItem('currentHostId');
+    const savedNick = sessionStorage.getItem('currentHostNick');
 
-    // 처음 켜졌을 때 메인 화면 로드
-    loadPage('main.jsp');
+    // 메모가 있으면 그 사람 홈피로 다시 돌려놓고, 없으면 내 홈피(main.jsp) 틀어줘
+    if (savedId && savedNick) {
+        goSearchMain(savedId, savedNick);
+    } else {
+        loadPage('main.jsp');
+    }
+   
 
     // 메뉴/탭 버튼 클릭 이벤트 등록
     document.querySelectorAll('.menu-item, .nb-tab').forEach(button => {
@@ -142,12 +147,17 @@ function goSearchMain(id, nick) {
     // 1. 클릭하는 순간 거추장스러운 검색 드롭다운 창 숨기기
     document.getElementById('search-dropdown').classList.add('hidden');
     document.getElementById('live-search-input').value = ''; // 검색어 비우기
-    console.log(id);
+
+
+    // ⭐ 새로고침 대비용 포스트잇 붙이기 (주소창 변경 없음!)
+    sessionStorage.setItem('currentHostId', id);
+    sessionStorage.setItem('currentHostNick', nick);
+
     const searchUrl = `/search-main?host_id=${id}`;
     fetch(searchUrl)
         .then(response => response.json())
         .then(searchData => {
-            console.log(searchData);
+
 
             // 왼쪽 프로필 이름 변경
             document.querySelector('.profile-name').innerText = nick;
