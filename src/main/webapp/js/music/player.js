@@ -27,29 +27,13 @@ function formatTime(sec) {
     return m + ':' + String(s).padStart(2, '0');
 }
 
-// ── 새로고침 대비 저장/복원 ─────────────────────────────────────
-function savePlayerState() {
-    if (!window.playlist || !window.playlist.length) return;
-
-    const state = {
-        currentIndex: window.currentIndex || 0,
-        currentTime: (window.ytPlayer && typeof window.ytPlayer.getCurrentTime === 'function')
-            ? Math.floor(window.ytPlayer.getCurrentTime())
-            : 0
-    };
-
-    localStorage.setItem('bgmPlayerState', JSON.stringify(state));
+function saveCurrentIndex() {
+    localStorage.setItem('bgmCurrentIndex', String(currentIndex));
 }
 
-function restorePlayerState() {
-    const raw = localStorage.getItem('bgmPlayerState');
-    if (!raw) return { currentIndex: 0, currentTime: 0 };
-
-    try {
-        return JSON.parse(raw);
-    } catch (e) {
-        return { currentIndex: 0, currentTime: 0 };
-    }
+function restoreCurrentIndex(playlistLength) {
+    const saved = parseInt(localStorage.getItem('bgmCurrentIndex') || '0', 10);
+    return Math.min(saved, playlistLength - 1)
 }
 
 // ── index.jsp 미니플레이어 UI 갱신 ──────────────────────────────
@@ -93,6 +77,7 @@ function playTrack(index) {
     ytPlayer.loadVideoById(playlist[currentIndex].youtubeId);
     updateIndexNowPlaying();
     notifyBgmFrame();
+    saveCurrentIndex();
 }
 
 function playNext() {
@@ -101,6 +86,7 @@ function playNext() {
     ytPlayer.loadVideoById(playlist[currentIndex].youtubeId);
     updateIndexNowPlaying();
     notifyBgmFrame();
+    saveCurrentIndex();
 }
 
 function playPrev() {
@@ -109,6 +95,7 @@ function playPrev() {
     ytPlayer.loadVideoById(playlist[currentIndex].youtubeId);
     updateIndexNowPlaying();
     notifyBgmFrame();
+    saveCurrentIndex();
 }
 
 function togglePlay() {
@@ -157,10 +144,12 @@ function initPlayer() {
 // ── 플레이리스트 로드 ─────────────────────────────────────────
 function loadPlaylist(userId) {
 
+    currentIndex = restoreCurrentIndex(playlist.length);
+
     // 비로그인시 더미트랙
     if (!userId) {
         playlist = dummyPlaylist;
-        currentIndex =  0;
+        currentIndex =  restoreCurrentIndex(dummyPlaylist.length);  //playlist 확정 후 복원
         fetchDone = true;
         if (apiReady) initPlayer();
         return;
@@ -171,7 +160,7 @@ function loadPlaylist(userId) {
         .then(r => r.json())
         .then(tracks => {
             playlist = tracks;
-            currentIndex = 0;
+            currentIndex = restoreCurrentIndex(playlist.length); //track확정 후 복원
             fetchDone = true;
             if (apiReady) initPlayer();
         })
@@ -180,7 +169,7 @@ function loadPlaylist(userId) {
 
             // DB 연동 실패 시 더미로 폴백
             playlist = dummyPlaylist;
-            currentIndex = 0;
+            currentIndex = restoreCurrentIndex(dummyPlaylist.length);   //폴백 후 복원
             fetchDone = true;
             if (apiReady) initPlayer();
         });
@@ -213,7 +202,22 @@ window.addEventListener('pageshow', function (event){
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         loadPlaylist(loginUserId);
+
+        // ✅ 이전/다음 버튼 연결
+        const prevBtn = document.getElementById('bgm-prev');
+        const nextBtn = document.getElementById('bgm-next');
+
+        if (prevBtn) prevBtn.addEventListener('click', playPrev);
+        if (nextBtn) nextBtn.addEventListener('click', playNext);
+
     });
 } else {
     loadPlaylist(loginUserId);
+
+    // ✅ 이전/다음 버튼 연결
+    const prevBtn = document.getElementById('bgm-prev');
+    const nextBtn = document.getElementById('bgm-next');
+
+    if (prevBtn) prevBtn.addEventListener('click', playPrev);
+    if (nextBtn) nextBtn.addEventListener('click', playNext);
 }
