@@ -199,18 +199,6 @@ function applyImgEdit(index, event) {
 // =============================================
 // 삭제
 // =============================================
-function deletePhoto(index) {
-    if (!confirm('이 게시글을 삭제할까요?')) return;
-
-    // 배열에서 해당 항목 삭제
-    photoData.splice(index, 1);
-
-    // TODO: DB 연동 시 → fetch('photo-delete?id=...', { method:'DELETE' })
-
-    // 삭제 후 피드 다시 그리기
-    renderFeedView();
-}
-
 // =============================================
 // 추가 모달
 // =============================================
@@ -280,6 +268,7 @@ function closeAddModal() {
     document.getElementById('addModal').style.display = 'none';
     document.getElementById('addTitle').value = '';
     document.getElementById('addContent').value = '';
+
     document.getElementById('addImgFile').value = '';
     document.getElementById('addImgPreview').style.display = 'none';
 }
@@ -334,6 +323,19 @@ async function addPhoto() {
         console.error('Error:', error);
         alert('서버 통신 중 오류가 발생했습니다.');
     }
+}
+
+function deletePhoto(index) {
+    if (!confirm('이 게시글을 삭제할까요?')) return;
+
+    // 배열에서 해당 항목 삭제
+    photoData.splice(index, 1);
+
+    // TODO: DB 연동 시 → fetch('photo-delete?id=...', { method:'DELETE' })
+
+    // 삭제 후 피드 다시 그리기
+    renderFeedView();
+
 }
 
 async function uploadSupabase() {
