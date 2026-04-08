@@ -15,6 +15,17 @@ public class HomeDAO {
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
+
+        // ⭐ 1. 세션과 파라미터 확인 (추가된 핵심 코드)
+        HttpSession hs = request.getSession();
+        String host_id = request.getParameter("host_id");
+
+        // ⭐ 2. 철벽 방어: 넘어온 아이디가 없으면 '내 홈피'이므로 내 아이디로 덮어쓰기!
+        if (host_id == null || host_id.isEmpty() || host_id.equals("null")) {
+            host_id = (String) hs.getAttribute("loginUserId");
+        }
+        request.setAttribute("host_id", host_id);
+
         int random_qna = (int)(Math.random() * 20) + 1;
         try{
             con = DBManager.connect();
@@ -24,6 +35,7 @@ public class HomeDAO {
             if(rs.next()) {
                 request.setAttribute("question",rs.getString("question"));
             }
+            request.setAttribute("searchMain",SearchDAO.searchMain(request));
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
