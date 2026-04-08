@@ -132,4 +132,27 @@ public class BgmDAO {
         t.setUserNickname(rs.getString("u_nickname"));
         return t;
     }
+
+    // BgmDAO.java 내부에 추가
+    public boolean updateTrackDuration(String uPk, String youtubeId, int duration) {
+        String sql = "UPDATE bgm_track SET duration = ? WHERE u_pk = ? AND youtube_id = ?";
+
+        Connection con = null;
+        PreparedStatement ps = null;
+
+        try {
+            con = DBManager.connect();
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, duration);
+            ps.setString(2, uPk);
+            ps.setString(3, youtubeId);
+
+            return ps.executeUpdate() == 1; // 업데이트 성공 시 true 반환
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DBManager.close(con, ps, null);
+        }
+    }
 }

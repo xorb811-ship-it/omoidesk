@@ -24,13 +24,21 @@ function renderQueueHeader() {
     const wrap = document.querySelector('.bgm-wrap');
     if (!header) return;
 
+    // 1. 기존 JSP에 정적으로 선언된 버튼 (id="bgm-add-btn") 대응
+    const staticAddBtn = document.getElementById('bgm-add-btn');
+    if (staticAddBtn) {
+        staticAddBtn.onclick = openBgmModal;
+    }
+
     if (window.isDefaultPlaylist) {
         wrap.classList.remove('theme-personal');
         wrap.classList.add('theme-default');
+        // 2. 동적으로 생성되는 헤더 안의 버튼에도 onclick 연결 확인
         header.innerHTML = `
             <div class="bgm-queue-status default">
                 <span class="bgm-queue-status-label">🎵 기본 BGM</span>
                 <span class="bgm-queue-hint">나만의 재생목록을 만들어봐요</span>
+                <button class="bgm-add-btn" onclick="openBgmModal()">+ 추가</button>
             </div>
         `;
     } else {
@@ -134,3 +142,154 @@ document.addEventListener('DOMContentLoaded', renderQueue);
 setTimeout(() => {
     renderQueue();
 }, 0);
+
+// ── 모달 열기/닫기 ──────────────────────────────
+function openBgmModal() {
+    document.getElementById('bgm-add-url').value = '';
+    document.getElementById('bgm-duration-input-row').style.display = 'none'; // 재생시간 초기화
+    document.getElementById('bgm-add-preview').style.display = 'none';
+    document.getElementById('bgm-add-msg').style.display = 'none';
+    document.getElementById('bgm-confirm-btn').style.display = 'none';
+    document.getElementById('bgm-add-modal').style.display = 'flex';
+    window._previewData = null;
+}
+
+function closeBgmModal() {
+    document.getElementById('bgm-add-modal').style.display = 'none';
+    window._previewData = null;
+}
+
+// 오버레이 클릭으로 닫기
+document.getElementById('bgm-add-modal')
+    .addEventListener('click', function(e) {
+        if (e.target === this) closeBgmModal();
+    });
+
+// ── YouTube URL → ID 추출 ───────────────────────
+function extractYoutubeId(url) {
+    const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/,
+        /youtube\.com\/shorts\/([A-Za-z0-9_-]{11})/
+    ];
+    for (const p of patterns) {
+        const m = url.match(p);
+        if (m) return m[1];
+    }
+    return null;
+}
+
+// ── 미리보기 ────────────────────────────────────
+async function bgmPreview() {
+    const url = document.getElementById('bgm-add-url').value.trim();
+    const msg = document.getElementById('bgm-add-msg');
+    const preview = document.getElementById('bgm-add-preview');
+
+    const ytId = extractYoutubeId(url);
+    if (!ytId) {
+        showAddMsg('올바른 YouTube URL을 입력해주세요.', 'error');
+        preview.style.display = 'none';
+        return;
+    }
+
+    showAddMsg('정보를 불러오는 중...', 'info');
+
+    try {
+        // oEmbed로 제목 가져오기
+        const res = await fetch(
+            `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${ytId}&format=json`
+        );
+        if (!res.ok) throw new Error('조회 실패');
+        const data = await res.json();
+
+        document.getElementById('bgm-preview-thumb').src =
+            `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+        document.getElementById('bgm-preview-title').textContent = data.title;
+
+        // 미리보기 성공 시 재생시간 입력 필드 노출
+        document.getElementById('bgm-duration-input-row').style.display = 'flex';
+        document.getElementById('bgm-add-preview').style.display = 'flex';
+        document.getElementById('bgm-confirm-btn').style.display = 'inline-block';
+
+        window._previewData = { youtubeId: ytId, title: data.title, duration: 0 };
+
+        preview.style.display = 'flex';
+        document.getElementById('bgm-confirm-btn').style.display = 'inline-block';
+        msg.style.display = 'none';
+
+    } catch (e) {
+        showAddMsg('정보를 불러올 수 없어요. URL을 확인해주세요.', 'error');
+    }
+}
+
+// ── 추가 확정 → POST /api/bgm ───────────────────
+async function bgmConfirmAdd() {
+    const min = parseInt(document.getElementById('bgm-input-min').value || 0);
+    const sec = parseInt(document.getElementById('bgm-input-sec').value || 0);
+    const totalDuration = (min * 60) + sec;
+
+    if (totalDuration <= 0) {
+        alert("재생 시간을 입력해주세요.");
+        return;
+    }
+
+    if (!window._previewData) return;
+
+    const { youtubeId, title, duration } = window._previewData;
+    showAddMsg('추가하는 중...', 'info');
+
+    try {
+        const params = new URLSearchParams({
+            youtubeId: youtubeId,
+            title: title,
+            duration: totalDuration
+        });
+
+        const res = await fetch('/api/bgm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+        const json = await res.json();
+
+        if (json.result === 'ok') {
+            closeBgmModal();
+            // 재생목록 새로고침
+            await reloadPlaylist();
+        } else {
+            showAddMsg(json.msg || '추가에 실패했어요.', 'error');
+        }
+    } catch (e) {
+        showAddMsg('서버 오류가 발생했어요.', 'error');
+    }
+}
+
+// ── 재생목록 리로드 부분 수정 (wasDefault 정의) ─────────────
+async function reloadPlaylist() {
+    const wasDefault = window.isDefaultPlaylist; // 현재 상태 저장
+
+    try {
+        const res = await fetch('/api/bgm');
+        const data = await res.json();
+
+        if (data && data.length > 0) {
+            window.playlist = data;
+            window.isDefaultPlaylist = false;
+
+            // 처음으로 곡을 추가해 '기본'에서 '개인'으로 전환된 경우 즉시 재생
+            if (wasDefault && typeof window.playTrack === 'function') {
+                window.playTrack(0);
+            }
+        }
+        renderQueue();
+    } catch (e) {
+        console.error("재생목록 로드 실패:", e);
+    }
+}
+
+// ── 메시지 표시 헬퍼 ────────────────────────────
+function showAddMsg(text, type) {
+    const el = document.getElementById('bgm-add-msg');
+    el.textContent = text;
+    el.className = 'bgm-add-msg ' + type;
+    el.style.display = 'block';
+}

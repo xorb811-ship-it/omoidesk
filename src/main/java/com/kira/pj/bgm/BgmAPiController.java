@@ -121,4 +121,34 @@ public class BgmAPiController extends HttpServlet {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
+
+    // BgmAPiController.java 내부에 추가
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        PrintWriter out = resp.getWriter();
+
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("loginUserPk") == null) {
+            resp.setStatus(401);
+            out.print("{\"result\":\"fail\",\"msg\":\"로그인 필요\"}");
+            return;
+        }
+
+        String uPk = (String) session.getAttribute("loginUserPk");
+
+        // JSON 데이터 처리가 번거로우면 URLSearchParams 방식으로 받기 위해 req.getParameter 사용
+        // 단, 톰캣 설정에 따라 doPut에서 getParameter가 안될 경우 별도의 파싱이 필요할 수 있습니다.
+        String youtubeId = req.getParameter("youtubeId");
+        String durationStr = req.getParameter("duration");
+
+        if (youtubeId != null && durationStr != null) {
+            int duration = Integer.parseInt(durationStr);
+            boolean ok = BgmDAO.MDAO.updateTrackDuration(uPk, youtubeId, duration);
+            out.print(ok ? "{\"result\":\"ok\"}" : "{\"result\":\"fail\"}");
+        } else {
+            resp.setStatus(400);
+            out.print("{\"result\":\"fail\",\"msg\":\"데이터 누락\"}");
+        }
+    }
 }

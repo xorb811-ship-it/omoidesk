@@ -23,6 +23,8 @@ const dummyPlaylist = [
     { title: 'Legend-Changer', youtubeId: 'Kpf2mmyzuMM', duration: 241, trackOrder: 5 },
 ];
 
+window.defaultPlaylist = dummyPlaylist.map(track => ({...track}));
+
 function formatTime(sec) {
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60);
@@ -126,6 +128,33 @@ function initPlayer() {
         events: {
             onReady: (event) => {
                 playerReady = true;
+
+                // ✅ 실제 재생 시간 보정 로직
+                const realDuration = Math.floor(event.target.getDuration());
+                const currentTrack = window.playlist[window.currentIndex];
+
+                // 1. 현재 트랙 정보가 있고, 기존 저장된 duration과 실제 시간이 2초 이상 차이날 때만 보정
+                if (currentTrack && Math.abs(currentTrack.duration - realDuration) > 2) {
+                    console.log(`[보정 작업 시작] 기존: ${currentTrack.duration}s -> 실제: ${realDuration}s`);
+
+                    // 메모리 데이터 즉시 갱신
+                    currentTrack.duration = realDuration;
+
+                    // 2. 서버 DB 업데이트 요청 (PUT)
+                    const params = new URLSearchParams({
+                        youtubeId: currentTrack.youtubeId,
+                        duration: realDuration
+                    });
+
+                    fetch('/api/bgm?' + params.toString(), { method: 'PUT' })
+                        .then(res => res.json())
+                        .then(json => { if(json.result === 'ok') console.log("DB 업데이트 완료"); })
+                        .catch(err => console.error("DB 업데이트 실패:", err));
+
+                    // 3. UI 갱신
+                    if (typeof renderQueue === 'function') renderQueue();
+                }
+
                 event.target.playVideo();
                 updateIndexNowPlaying();
                 setInterval(updateIndexNowPlaying, 1000);
@@ -133,10 +162,8 @@ function initPlayer() {
             },
             onStateChange: (e) => {
                 if (e.data === YT.PlayerState.ENDED) playNext();
-
                 const btn = document.getElementById('bgm-toggle');
                 if (btn) btn.textContent = e.data === YT.PlayerState.PLAYING ? '⏸' : '▶';
-
                 notifyBgmFrame();
             }
         }
@@ -150,10 +177,10 @@ function loadPlaylist(userId) {
 /*
     // 1) 비로그인 사용자 → 기본 재생목록
     if (!userId || userId.trim() === '') {
-        playlist = dummyPlaylist;
+        window.playlist = window.defaultPlaylist.map(track => ({ ...track }));
         window.isDefaultPlaylist = true;
-        currentIndex = restoreCurrentIndex(dummyPlaylist.length); // playlist 확정 후 복원
-        fetchDone = true;
+        window.currentIndex = restoreCurrentIndex(window.playlist.length); // playlist 확정 후 복원
+        window.fetchDone = true;
         if (apiReady) initPlayer();
         return;
     }
