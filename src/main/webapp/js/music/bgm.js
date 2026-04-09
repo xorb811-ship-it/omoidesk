@@ -46,13 +46,13 @@ function renderQueueHeader() {
         wrap.classList.add('theme-personal');
         // 기존 추가 버튼 옆에 셔플 버튼 추가
         header.innerHTML = `
-    <div class="bgm-queue-header-top">
+    <div class="bgm-queue-status-row">
         <div class="bgm-queue-status personal">
             <span class="bgm-queue-status-label">✨ 내 플레이리스트</span>
             <span class="bgm-queue-count">${window.playlist.length}곡</span>
         </div>
         <div class="bgm-queue-actions">
-            <button class="bgm-shuffle-btn" id="bgm-shuffle-btn">🔀 셔플</button>
+            &nbsp&nbsp&nbsp<button class="bgm-shuffle-btn" id="bgm-shuffle-btn">🔀 셔플</button>
         </div>
     </div>
 `;
