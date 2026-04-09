@@ -174,6 +174,11 @@ function goSearchMain(id, nick) {
 
             // 마지막으로 페이지 내용 불러오기
             loadPage(`/home?ajax=true&host_id=${id}`);
+
+            // ✅ BGM 플레이리스트도 그 사람 것으로 갱신
+            if (typeof loadPlaylist === 'function') {
+                loadPlaylist(hostId);
+            }
         })
         .catch((err) => {
             console.error("데이터 로드 에러:", err);
