@@ -253,48 +253,42 @@ function initPlayer() {
 }
 
 // ── 플레이리스트 로드 ─────────────────────────────────────────
-function loadPlaylist(userPk) {
-  currentIndex = restoreCurrentIndex(playlist.length);
-  /*
-        // 1) 비로그인 사용자 → 기본 재생목록
-        if (!userPk || userPk.trim() === '') {
-            window.playlist = window.defaultPlaylist.map(track => ({ ...track }));
-            window.isDefaultPlaylist = true;
-            window.currentIndex = restoreCurrentIndex(window.playlist.length); // playlist 확정 후 복원
-            window.fetchDone = true;
-            if (apiReady) initPlayer();
-            return;
+function loadPlaylist(targetPk) {
+  const myPk = window.loginUserPk || '';
+  const isActuallyMe = (!targetPk || targetPk === myPk);
+
+  // ✅ 조회 대상이 나인지 여부를 loadPlaylist 시점에 확정
+
+  window.isMyPlaylist = isActuallyMe;
+
+  const url = isActuallyMe
+      ? '/api/bgm'
+      : `/api/visitor/bgm?ownerPk=${targetPk}`;
+
+  fetch(url)
+      .then(r => r.json())
+      .then(tracks => {
+        if (!tracks || tracks.length === 0) {
+          window.playlist = dummyPlaylist;
+          window.isDefaultPlaylist = true;
+          window.currentHostNickname = null;
+        } else {
+          window.playlist = tracks;
+          window.isDefaultPlaylist = false;
+          window.currentHostNickname = tracks[0].userNickname;
         }
-    */
-  // 2) 로그인 사용자 → 무조건 DB 조회
-  fetch("/api/bgm")
-    .then((r) => r.json())
-    .then((tracks) => {
-      // 3) DB에 재생목록이 0개면 기본 재생목록
-      if (!tracks || tracks.length === 0) {
-        playlist = dummyPlaylist;
-        window.isDefaultPlaylist = true;
-        currentIndex = restoreCurrentIndex(dummyPlaylist.length);
-      } else {
-        // 4) DB에 내 곡이 있으면 개인 재생목록
-        playlist = tracks;
-        window.isDefaultPlaylist = false;
-        currentIndex = restoreCurrentIndex(tracks.length);
-      }
 
-      fetchDone = true;
-      if (apiReady) initPlayer();
-    })
-    .catch((err) => {
-      console.error("플레이리스트 로드 실패:", err);
+        window.fetchDone = true;
+        window.currentIndex = 0;
 
-      // 5) DB 조회 실패 시 기본 재생목록으로 폴백
-      playlist = dummyPlaylist;
-      window.isDefaultPlaylist = true;
-      currentIndex = restoreCurrentIndex(dummyPlaylist.length);
-      fetchDone = true;
-      if (apiReady) initPlayer();
-    });
+        if (typeof renderQueue === 'function') renderQueue();
+
+        if (window.ytPlayer && window.playerReady) {
+          window.ytPlayer.loadVideoById(window.playlist[0].youtubeId);
+        } else if (window.apiReady) {
+          initPlayer();
+        }
+      });
 }
 
 // ── YouTube API 준비 콜백 ─────────────────────────────────────

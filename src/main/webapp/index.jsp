@@ -216,7 +216,9 @@
                     </div>
 
                     <a id="yt-link" href="#" target="_blank" class="phone-yt-link">▶ YouTube에서 보기</a>
-                    <div class="text" id="bgm-title-phone">🎶 내 재생목록</div>
+                    <div class="text" id="bgm-title-phone"
+                         data-src="/bgm?ajax=true"
+                    >🎶 내 재생목록</div>
                 </div>
                 <div class="phone-home"
                      data-src="/bgm?ajax=true"
