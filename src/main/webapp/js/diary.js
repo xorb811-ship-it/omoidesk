@@ -1,46 +1,44 @@
 /**
  * [1] 다이어리 내용을 비동기로 불러오는 핵심 함수
  */
-function loadDiary(url = "diary") {
-    if (!url.includes("ajax=true")) {
-        url += (url.includes("?") ? "&" : "?") + "ajax=true";
+function loadDiary(url = "diary", memberId = "") {
+    // 1. URL 객체를 생성해서 파라미터를 정교하게 다룹니다.
+    let targetUrl = new URL(url, window.location.origin + window.location.pathname);
+
+    // 2. 만약 인자로 memberId를 직접 받았다면 (일촌 클릭 등) 우선 적용
+    if (memberId) {
+        targetUrl.searchParams.set("memberId", memberId);
+    }
+    // 3. 인자가 없다면 현재 화면(hidden input)에서 가져옴
+    else {
+        const currentOwner = document.getElementById("currentDiaryOwner")?.value;
+        if (currentOwner && !targetUrl.searchParams.has("memberId")) {
+            targetUrl.searchParams.set("memberId", currentOwner);
+        }
     }
 
-    // 현재 페이지의 ownerId 유지 로직
-    const currentOwner = document.getElementById("currentDiaryOwner")?.value;
-    if (currentOwner && !url.includes("memberId=")) {
-        url += "&memberId=" + currentOwner;
-    }
+    // 4. 비동기/상태유지용 파라미터 추가
+    targetUrl.searchParams.set("ajax", "true");
 
-    console.log("📬 요청 주소:", url);
+    console.log("📬 최종 요청 주소:", targetUrl.toString());
 
-    fetch(url)
-        .then((response) => {
-            if (!response.ok) throw new Error(`서버 응답 에러 (상태코드: ${response.status})`);
-            return response.text();
-        })
+    fetch(targetUrl.toString())
+        .then((response) => response.text())
         .then((html) => {
             const contentArea = document.getElementById("notebook-content");
             if (contentArea) {
                 contentArea.innerHTML = html;
 
-                // ★ [성현님 요청 기능] 날짜 클릭 시 목록으로 부드럽게 스크롤
-                // URL에 'd='이 있으면 날짜를 선택했다는 뜻이므로 목록 위치로 이동합니다.
-                if (url.includes("d=")) {
-                    // diary-board 클래스를 가진 요소(목록창)를 찾아서 그 위치로 이동
+                // [성현님 요청] 스크롤 로직 유지
+                if (targetUrl.searchParams.has("d")) {
                     setTimeout(() => {
                         const board = document.querySelector(".diary-board");
-                        if (board) {
-                            board.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }
-                    }, 50); // HTML이 완전히 렌더링될 시간을 아주 잠깐 줌
-                } else {
-                    // 그 외 일반 이동은 상단으로 스크롤
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                        if (board) board.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 50);
                 }
             }
         })
-        .catch((error) => console.error("❌ 다이어리 로드 실패:", error));
+        .catch((error) => console.error("❌ 로드 실패:", error));
 }
 
 /**

@@ -21,19 +21,17 @@ public class DiaryDAO {
 
     public void getCalendar(HttpServletRequest req) {
         Calendar cal = Calendar.getInstance();
-
         String y = req.getParameter("y");
         String m = req.getParameter("m");
         String d = req.getParameter("d");
         String mode = req.getParameter("mode");
+        String memberId = req.getParameter("memberId"); // [유지] 일촌 ID 파라미터
 
-        // [추가] 일촌 다이어리 연동을 위한 ID 파라미터 받기
-        String memberId = req.getParameter("memberId");
         HttpSession session = req.getSession();
         String myId = (String) session.getAttribute("loginUserId");
         String myPk = (String) session.getAttribute("loginUserPk");
 
-        // ★ 핵심: 파라미터로 받은 memberId가 있으면 그 사람 꺼, 없으면 내 꺼 조회
+        // ★ 핵심: 파라미터 ID가 있으면 그 사람 꺼, 없으면 내 꺼 조회
         String targetId = (memberId == null || memberId.isEmpty()) ? myId : memberId;
         req.setAttribute("ownerId", targetId);
 
@@ -69,16 +67,14 @@ public class DiaryDAO {
             try {
                 con = DBManager.connect();
 
-                // [수정] 미니홈피 주인 PK 정보 가져오기 (관계 파악용)
-                // 이 부분은 성현님 프로젝트의 세션 설계에 따라 ownerUserPk가 세션에 미리 담겨있어야 합니다.
-                String ownerId = targetId;
-                String ownerPk = (String) session.getAttribute("ownerUserPk");
-                // (만약 ownerPk가 세션에 없다면 DAO에서 ID로 PK를 조회하는 로직이 추가로 필요할 수 있습니다.)
-
-                int relation = 0;
-                if (myId != null && !myId.isEmpty() && ownerId != null && !ownerId.isEmpty()) {
-                    if (myId.equals(ownerId)) { relation = 2; }
-                    else if (myPk != null && ownerPk != null) {
+                // [관계 파악 로직] 성현님의 FriendDAO를 활용해 관계를 정의합니다.
+                int relation = 0; // 0:남남, 1:일촌, 2:본인
+                if (myId != null && myId.equals(targetId)) {
+                    relation = 2;
+                } else {
+                    // 일촌인지 확인 (ownerPk가 세션에 있다고 가정)
+                    String ownerPk = (String) session.getAttribute("ownerUserPk");
+                    if (myPk != null && ownerPk != null) {
                         FriendDAO fdao = new FriendDAO();
                         FriendDTO fdto = fdao.checkRelation(myPk, ownerPk);
                         if (fdto != null && fdto.getF_status() == 1) relation = 1;
@@ -89,16 +85,16 @@ public class DiaryDAO {
                 String formattedDay = String.format("%02d", Integer.parseInt(d));
                 String fullDate = curYear + "-" + formattedMonth + "-" + formattedDay;
 
-                // [중요] targetId(일촌 혹은 본인)의 글을 조회하도록 쿼리 실행
+                // ★ SQL 쿼리 (타겟 ID의 글만 가져오되, 관계에 따라 공개범위 필터링)
                 String sql = "SELECT * FROM diary_test WHERE TO_CHAR(d_date, 'YYYY-MM-DD') = ? AND d_id = ? ";
-                if (relation == 2) sql += "AND d_visibility IN (0, 1, 2) ";
-                else if (relation == 1) sql += "AND d_visibility IN (1, 2) ";
-                else sql += "AND d_visibility = 2 ";
+                if (relation == 2) sql += "AND d_visibility IN (0, 1, 2) "; // 내꺼: 다 나옴
+                else if (relation == 1) sql += "AND d_visibility IN (1, 2) "; // 일촌꺼: 일촌/전체만 나옴
+                else sql += "AND d_visibility = 2 "; // 남꺼: 전체만 나옴
                 sql += "ORDER BY d_no DESC";
 
                 pstmt = con.prepareStatement(sql);
                 pstmt.setString(1, fullDate);
-                pstmt.setString(2, targetId);
+                pstmt.setString(2, targetId); // [중요] targetId(back12)로 조회
                 rs = pstmt.executeQuery();
 
                 while (rs.next()) {
@@ -112,7 +108,6 @@ public class DiaryDAO {
                 }
             } catch (Exception e) { e.printStackTrace(); }
             finally { DBManager.close(con, pstmt, rs); }
-
             req.setAttribute("posts", posts);
         }
     }
