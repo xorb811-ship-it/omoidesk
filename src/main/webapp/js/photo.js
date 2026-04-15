@@ -1,21 +1,59 @@
 let photoData = [];
 
 // =============================================
+// 상태 저장을 위한 변수 (댓글 작성/삭제 시 스크롤 및 열림 상태 유지용)
+// =============================================
+let savedScrollTop = 0;
+let openCommentSections = [];
+
+function saveState() {
+    const container = document.getElementById('notebook-content');
+    if (container) savedScrollTop = container.scrollTop;
+
+    openCommentSections = [];
+    photoData.forEach(item => {
+        const section = document.getElementById(`comment-section-${item.photoId}`);
+        // maxHeight가 0px이 아니고 세팅되어 있다면 열려있는 상태
+        if (section && section.style.maxHeight && section.style.maxHeight !== '0px') {
+            openCommentSections.push(item.photoId);
+        }
+    });
+}
+
+function restoreState() {
+    const container = document.getElementById('notebook-content');
+    if (container) container.scrollTop = savedScrollTop;
+
+    openCommentSections.forEach(pid => {
+        const section = document.getElementById(`comment-section-${pid}`);
+        if (section) section.style.maxHeight = '500px'; // 다시 열어줌
+    });
+}
+
+// =============================================
 // 메인 로드
 // =============================================
-function loadPhoto() {
+// preserveState가 true면 기존 스크롤과 댓글창 열림 상태를 기억합니다.
+function loadPhoto(preserveState = false) {
+    if (preserveState) saveState();
+
     const container = document.getElementById('notebook-content');
     container.style.overflowY = 'auto';
     container.style.height = '100%';
-    container.innerHTML = '<div style="text-align:center; padding:20px;">사진첩을 열고 있어요... 📸</div>';
-    const hostId = sessionStorage.getItem("currentHostId") || loginUserId; // 없으면 내 id
+
+    // 상태 유지가 아닐 때만 로딩바 표시 (댓글 달 때 깜빡임 방지)
+    if (!preserveState) {
+        container.innerHTML = '<div style="text-align:center; padding:20px;">사진첩을 열고 있어요... 📸</div>';
+    }
+
+    const hostId = sessionStorage.getItem("currentHostId") || loginUserId;
 
     fetch(`/photo-data?host_id=${encodeURIComponent(hostId)}`)
         .then(res => res.json())
         .then(data => {
-            // 백엔드에서 Gson으로 변환한 List<PhotoDTO> 데이터
             photoData = data;
             renderFeedView(hostId);
+            if (preserveState) restoreState(); // 렌더링 후 상태 복구
         })
         .catch(err => {
             container.innerHTML = '<div style="text-align:center; padding:20px; color:red;">사진첩 로딩 실패 ㅠㅠ</div>';
@@ -29,7 +67,7 @@ function loadPhoto() {
 function renderFeedView(hostId) {
     const container = document.getElementById('notebook-content');
     const loginId = loginUserId;
-    const isOwner = (hostId === loginId); // 내 홈피인지 여부
+    const isOwner = (hostId === loginId);
 
     let html = `
         <div style="
@@ -57,7 +95,7 @@ function renderFeedView(hostId) {
     }
 
     photoData.forEach((item, index) => {
-        html += buildFeedCard(item, index, isOwner);
+        html += buildFeedCard(item, index, isOwner, loginId);
     });
 
     html += `</div></div>`;
@@ -67,10 +105,9 @@ function renderFeedView(hostId) {
 }
 
 // =============================================
-// 피드 카드 1장 빌더 (DB의 photoId 적극 활용)
+// 피드 카드 1장 빌더
 // =============================================
-function buildFeedCard(item, index, isOwner) {
-    // DB의 고유 ID (PK)
+function buildFeedCard(item, index, isOwner, loginId) {
     const pid = item.photoId;
 
     return `
@@ -81,7 +118,6 @@ function buildFeedCard(item, index, isOwner) {
         box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-bottom: 20px;">
 
         <div style="display:flex; flex-direction:row;">
-            
             <div style="width:520px; min-width:520px; height:400px; overflow:hidden; border-right:1px solid #eee;">
                 <img id="detail-img-${pid}"
                      src="${item.imgName}"
@@ -91,10 +127,8 @@ function buildFeedCard(item, index, isOwner) {
             </div>
 
             <div style="flex:1; padding:24px; display:flex; flex-direction:column;">
-                
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                    <div id="title-view-${pid}"
-                         style="font-size:22px; font-weight:bold; color:#444; font-family:'Gaegu', cursive;">
+                    <div id="title-view-${pid}" style="font-size:22px; font-weight:bold; color:#444; font-family:'Gaegu', cursive;">
                         ${item.title}
                     </div>
                     <button onclick="deletePhoto(${index})" style="
@@ -146,15 +180,26 @@ function buildFeedCard(item, index, isOwner) {
                 <div style="display:flex; gap:10px;">
                     <input type="text" id="comment-input-${pid}" placeholder="내용을 입력하세요..." style="
                         flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:20px;
-                        font-family:'Gaegu', cursive; font-size:14px; outline:none;">
+                        font-family:'Gaegu', cursive; font-size:14px; outline:none;"
+                        onkeypress="if(event.key==='Enter') addComment(${pid})">
                     <button onclick="addComment(${pid})" style="
                         padding:6px 16px; background:#ffb3ba; color:#fff; border:none;
                         border-radius:20px; font-family:'Gaegu', cursive; cursor:pointer;">등록</button>
                 </div>
+                
                 <div style="margin-top:15px; font-size:13px; color:#888;">
                     ${item.comments && item.comments.length > 0 ? item.comments.map(c =>
-        `<div style="padding:8px 0; border-bottom:1px dashed #eee;">
-                        <b>${c.userId}</b> : ${c.content}
+        `<div style="padding:10px 0; border-bottom:1px dashed #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="color:#444; font-weight:bold;">${c.userId}</span>
+                            <span style="color:#555; margin-left:5px;">${c.content}</span>
+                            <span style="color:#999; font-size:11px; margin-left:10px;">${c.regDate}</span>
+                        </div>
+                        ${c.userId === loginId ? `
+                            <button onclick="deleteComment(${c.commentId})" style="
+                                background:none; border:none; cursor:pointer; font-size:14px; opacity:0.6;"
+                                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'" title="삭제">🗑️</button>
+                        ` : ''}
                     </div>`).join('') : `<div style="padding:8px 0;">아직 작성된 댓글이 없습니다.</div>`}
                 </div>          
             </div>
@@ -163,17 +208,14 @@ function buildFeedCard(item, index, isOwner) {
     `;
 }
 
-// 좋아요 / 댓글 - 로직은 나중에
-function onLikeClick(pid) {
-    // 나중에 구현
-}
+// 좋아요 기능 (나중에 구현)
+function onLikeClick(pid) {}
 
 // =============================================
-// 댓글창 슬라이드 토글 기능 (pid 기준)
+// 댓글창 슬라이드 토글 기능
 // =============================================
 function toggleComment(pid) {
     const commentSection = document.getElementById(`comment-section-${pid}`);
-
     if (commentSection.style.maxHeight === '0px' || commentSection.style.maxHeight === '') {
         commentSection.style.maxHeight = '500px';
     } else {
@@ -206,7 +248,7 @@ async function addComment(photoId) {
 
         if (response.ok) {
             inputEl.value = '';
-            loadPhoto(); // 임시로 전체를 다시 불러옴. 나중에는 DOM만 추가하는 방식으로 개선 가능
+            loadPhoto(true); // true를 넘겨서 스크롤 유지!
         } else {
             alert('댓글 등록에 실패했습니다.');
         }
@@ -217,6 +259,29 @@ async function addComment(photoId) {
 }
 
 // =============================================
+// 댓글 삭제 (신규 기능)
+// =============================================
+async function deleteComment(commentId) {
+    if (!confirm('댓글을 삭제하시겠습니까?')) return;
+
+    try {
+        const response = await fetch(`/photo-comment?commentId=${commentId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            loadPhoto(true); // 삭제 후에도 스크롤 및 댓글창 열림 유지
+        } else {
+            alert('댓글 삭제에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('Delete Comment Error:', error);
+        alert('서버 통신 중 오류가 발생했습니다.');
+    }
+}
+
+
+// =============================================
 // 이미지 수정
 // =============================================
 function applyImgEdit(index, event) {
@@ -225,8 +290,6 @@ function applyImgEdit(index, event) {
     const newUrl = URL.createObjectURL(file);
     photoData[index].imgUrl = newUrl;
     photoData[index].imgName = file.name;
-
-    // DB PK인 photoId를 찾아서 UI 변경
     const pid = photoData[index].photoId;
     document.getElementById(`detail-img-${pid}`).src = newUrl;
 }
@@ -238,11 +301,9 @@ async function deletePhoto(index) {
     const item = photoData[index];
     if (!confirm('이 게시글을 삭제할까요?')) return;
 
-    // 1. Supabase에서 먼저 삭제 (파일명 기준)
     await deleteSupabase(item.imgName);
 
     try {
-        // 2. DB에서 삭제 (파일명과 PK 모두 넘김)
         const response = await fetch(`/photo-data?imgName=${encodeURIComponent(item.imgName)}&photoId=${item.photoId}`, {
             method: 'DELETE'
         });
@@ -251,7 +312,7 @@ async function deletePhoto(index) {
         const row = parseInt(text);
         if (row > 0) {
             alert('사진이 성공적으로 삭제되었습니다!');
-            loadPhoto();
+            loadPhoto(false); // 게시글이 삭제되었으므로 스크롤 리셋
         } else {
             alert('DB 삭제에 실패했습니다.');
         }
@@ -368,7 +429,7 @@ async function addPhoto() {
         if (row > 0) {
             closeAddModal();
             alert('사진이 성공적으로 등록되었습니다!');
-            loadPhoto();
+            loadPhoto(false);
         } else {
             alert('DB 저장에 실패했습니다.');
         }
