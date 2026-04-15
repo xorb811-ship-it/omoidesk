@@ -26,7 +26,17 @@ function restoreState() {
 
     openCommentSections.forEach(pid => {
         const section = document.getElementById(`comment-section-${pid}`);
-        if (section) section.style.maxHeight = '500px'; // 다시 열어줌
+        if (section) {
+            // ✨ 깜빡임 방지 로직: 스르륵 열리는 애니메이션을 잠시 끄고 즉시 엽니다.
+            section.style.transition = 'none';
+            section.style.maxHeight = '500px';
+
+            // 브라우저 렌더링 강제 업데이트
+            void section.offsetHeight;
+
+            // 다음번 토글을 위해 원래 애니메이션 복구
+            section.style.transition = 'max-height 0.3s ease-in-out';
+        }
     });
 }
 
@@ -104,9 +114,6 @@ function renderFeedView(hostId) {
     container.innerHTML = html;
 }
 
-// =============================================
-// 피드 카드 1장 빌더
-// =============================================
 // =============================================
 // 피드 카드 1장 빌더
 // =============================================
@@ -312,7 +319,7 @@ async function addComment(photoId) {
 
         if (response.ok) {
             inputEl.value = '';
-            loadPhoto(true); // true를 넘겨서 스크롤 유지!
+            loadPhoto(true); // true를 넘겨서 애니메이션 없이 상태 유지!
         } else {
             alert('댓글 등록에 실패했습니다.');
         }
