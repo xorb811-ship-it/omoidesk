@@ -118,6 +118,9 @@ function renderFeedView(hostId) {
 // =============================================
 // 피드 카드 1장 빌더
 // =============================================
+// =============================================
+// 피드 카드 1장 빌더
+// =============================================
 function buildFeedCard(item, index, isOwner, loginId) {
     const pid = item.photoId;
 
@@ -175,7 +178,7 @@ function buildFeedCard(item, index, isOwner, loginId) {
         </div>
 
         <div id="comment-section-${pid}" style="
-            max-height: 0; overflow: auto; transition: max-height 0.3s ease-in-out;
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out;
             background: #fdfcf8; border-top: 1px solid #eee;">
 
             <div style="
@@ -195,31 +198,6 @@ function buildFeedCard(item, index, isOwner, loginId) {
                     ${item.comments ? item.comments.length : 0}
                 </span>
             </div>
-            
-             <div style="
-                padding:12px 18px 14px;
-                border-top:0.5px dashed #f0e6e8;
-                display:flex; gap:8px; align-items:center;
-                margin-top:4px;">
-                <input type="text"
-                    id="comment-input-${pid}"
-                    placeholder="댓글을 남겨보세요 💬"
-                    style="
-                        flex:1; padding:9px 14px;
-                        border:1px solid #e8dde0;
-                        border-radius:24px;
-                        font-family:'Gaegu', cursive; font-size:14px; outline:none;
-                        background:#fdfcfa; color:#555;"
-                    onkeypress="if(event.key==='Enter') addComment(${pid})">
-                <button onclick="addComment(${pid})" style="
-                    padding:8px 16px;
-                    background:#ffb3ba; color:#7a2035;
-                    border:none; border-radius:24px;
-                    font-family:'Gaegu', cursive; font-size:13px; font-weight:700;
-                    cursor:pointer; white-space:nowrap;">
-                    등록
-                </button>
-            </div>
 
             <div style="padding: 6px 18px 0; display:flex; flex-direction:column;">
                 ${item.comments && item.comments.length > 0
@@ -231,7 +209,7 @@ function buildFeedCard(item, index, isOwner, loginId) {
                             padding:10px 0;
                             border-bottom:0.5px dashed #f0eae8;">
 
-                            <div style="
+                            <div onclick="goSearchMain('${c.userId}', '${c.userName}')" style="
                                 width:30px; height:30px; min-width:30px;
                                 border-radius:50%;
                                 background:#fbeaf0;
@@ -239,6 +217,7 @@ function buildFeedCard(item, index, isOwner, loginId) {
                                 font-size:13px; font-weight:700; color:#d4537e;
                                 border:1px solid #f4c0d155;
                                 overflow:hidden;
+                                cursor:pointer; /* ✨ 클릭 가능한 포인터 모양 */
                                 font-family:'Gaegu', cursive;">
                                 ${c.profileImgUrl
                 ? `<img src="${c.profileImgUrl}" style="width:100%; height:100%; object-fit:cover;">`
@@ -248,7 +227,10 @@ function buildFeedCard(item, index, isOwner, loginId) {
 
                             <div style="flex:1;">
                                 <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:3px;">
-                                    <span style="font-size:14px; font-weight:700; color:#444; font-family:'Gaegu', cursive;">
+                                    <span onclick="goSearchMain('${c.userId}', '${c.userName}')" 
+                                          style="font-size:14px; font-weight:700; color:#444; font-family:'Gaegu', cursive; cursor:pointer;"
+                                          onmouseover="this.style.textDecoration='underline'"
+                                          onmouseout="this.style.textDecoration='none'">
                                         ${c.userName}
                                     </span>
                                     <span style="font-size:11px; color:#bbb; font-family:'Gaegu', cursive;">
@@ -279,12 +261,34 @@ function buildFeedCard(item, index, isOwner, loginId) {
     }
             </div>
 
-           
+            <div style="
+                padding:12px 18px 14px;
+                border-top:0.5px dashed #f0e6e8;
+                display:flex; gap:8px; align-items:center;
+                margin-top:4px;">
+                <input type="text"
+                    id="comment-input-${pid}"
+                    placeholder="댓글을 남겨보세요 💬"
+                    style="
+                        flex:1; padding:9px 14px;
+                        border:1px solid #e8dde0;
+                        border-radius:24px;
+                        font-family:'Gaegu', cursive; font-size:14px; outline:none;
+                        background:#fdfcfa; color:#555;"
+                    onkeypress="if(event.key==='Enter') addComment(${pid})">
+                <button onclick="addComment(${pid})" style="
+                    padding:8px 16px;
+                    background:#ffb3ba; color:#7a2035;
+                    border:none; border-radius:24px;
+                    font-family:'Gaegu', cursive; font-size:13px; font-weight:700;
+                    cursor:pointer; white-space:nowrap;">
+                    등록
+                </button>
+            </div>
         </div>
     </div>
     `;
 }
-
 // =============================================
 // 댓글창 슬라이드 토글 기능
 // =============================================
