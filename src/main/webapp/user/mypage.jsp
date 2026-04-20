@@ -1,5 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <script src="https://js.tosspayments.com/v2/standard"></script>
+<script src="js/index.js"></script>
+<script>
+    const loginUserId = "${sessionScope.loginUserId}";
+</script>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -118,7 +123,9 @@
     </div>
 
     <div class="mypage-back">
-        <a href="javascript:void(0);" onclick="history.back()">← 메인으로 돌아가기</a>
+        <a href="javascript:void(0);" onclick="location.href='${pageContext.request.contextPath}/main'">
+            ← 메인으로 돌아가기
+        </a>
     </div>
 </div>
 
@@ -126,7 +133,6 @@
 <script>
     const pwInput = document.getElementById("newPw");
     const pwChkInput = document.getElementById("newPwChk");
-
     const bar = document.querySelector(".pw-bar");
     const text = document.querySelector(".pw-text");
     const matchText = document.getElementById("pw-match-text");
@@ -423,6 +429,8 @@
                 alert(data.message);
             }
         });
+// 메인
+
     }
 
 

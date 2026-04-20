@@ -49,5 +49,5 @@ CREATE TABLE nick_ticket_order (
                                    nto_created_at    DATE DEFAULT SYSDATE NOT NULL,
                                    nto_approved_at   DATE,
                                    CONSTRAINT fk_nick_ticket_user
-                                       FOREIGN KEY (nto_user_pk) REFERENCES userReg(u_pk)
+                                       FOREIGN KEY (nto_user_pk) REFERENCES userReg(u_pk) on delete cascade
 );
