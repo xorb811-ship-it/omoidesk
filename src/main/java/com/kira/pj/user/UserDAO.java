@@ -829,7 +829,7 @@ public class UserDAO {
 
             if (rs.next()) {
                 String dbPw = rs.getString("u_pw");
-
+                System.out.println(dbPw);
                 // 비밀번호 틀림
                 if (!dbPw.equals(pw)) {
                     return false;

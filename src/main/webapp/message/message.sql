@@ -10,8 +10,8 @@ CREATE TABLE private_message
     m_receiver_del NUMBER(1) DEFAULT 0,           -- 받는 사람 삭제 여부 (1이면 받은쪽지함에서 안보임)
 
     -- 외래키 설정 (유저 테이블 참조)
-    CONSTRAINT fk_msg_sender FOREIGN KEY (m_sender_pk) REFERENCES userReg (u_pk),
-    CONSTRAINT fk_msg_receiver FOREIGN KEY (m_receiver_pk) REFERENCES userReg (u_pk)
+    CONSTRAINT fk_msg_sender FOREIGN KEY (m_sender_pk) REFERENCES userReg (u_pk) on delete cascade,
+    CONSTRAINT fk_msg_receiver FOREIGN KEY (m_receiver_pk) REFERENCES userReg (u_pk) on delete cascade
 );
 
 select * from private_message;
